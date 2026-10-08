@@ -6,4 +6,3 @@ const { sendEmail } = require("../service/email.s");
 router.post("/send", sendEmail);
 
 module.exports = router;
-›

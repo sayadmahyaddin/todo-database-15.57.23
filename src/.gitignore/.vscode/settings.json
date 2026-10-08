@@ -1,7 +1,0 @@
-{
-  "dotenv.enableAutocloaking": false,
-  "files.associations": {
-    "*.js": "javascript"
-  },
-  "postman.settings.dotenv-detection-notification-visibility": false
-}
