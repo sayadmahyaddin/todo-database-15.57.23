@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in — Daylist</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center;
+      padding: 20px; font-family: system-ui, sans-serif;
+      background: #f5f6f0; color: #253e33;
+    }
+    .card {
+      width: min(100%, 420px); padding: 32px; background: white;
+      border-radius: 22px; box-shadow: 0 18px 50px #253e3314;
+    }
+    h1 { margin: 0 0 8px; }
+    p { color: #758178; }
+    .tabs { display: flex; gap: 8px; margin: 24px 0; }
+    button {
+      border: 0; border-radius: 10px; padding: 12px 16px;
+      font: inherit; cursor: pointer;
+    }
+    .tabs button { flex: 1; background: #edf0e9; }
+    .tabs button.active, #submit {
+      background: #253e33; color: white;
+    }
+    label { display: block; margin: 14px 0 6px; font-weight: 600; }
+    input {
+      width: 100%; padding: 12px; border: 1px solid #d9e0d8;
+      border-radius: 10px; font: inherit;
+    }
+    #submit { width: 100%; margin-top: 24px; }
+    #message { min-height: 22px; color: #b44840; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>daylist.</h1>
+    <p>Your own space for what needs to get done.</p>
+
+    <div class="tabs">
+      <button id="loginTab" class="active" type="button">Log in</button>
+      <button id="registerTab" type="button">Register</button>
+    </div>
+
+    <form id="authForm">
+      <div id="nameField" class="hidden">
+        <label for="name">Name</label>
+        <input id="name" autocomplete="name">
+      </div>
+
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password" minlength="6" required>
+
+      <div id="ageField" class="hidden">
+        <label for="age">Age</label>
+        <input id="age" type="number" min="1">
+      </div>
+
+      <button id="submit" type="submit">Log in</button>
+    </form>
+    <p id="message" role="status"></p>
+  </main>
+
+  <script>
+    let mode = "login";
+    const $ = (id) => document.getElementById(id);
+
+    function setMode(next) {
+      mode = next;
+      const registering = mode === "register";
+
+      $("nameField").classList.toggle("hidden", !registering);
+      $("ageField").classList.toggle("hidden", !registering);
+      $("name").required = registering;
+      $("age").required = registering;
+      $("loginTab").classList.toggle("active", !registering);
+      $("registerTab").classList.toggle("active", registering);
+      $("submit").textContent = registering ? "Create account" : "Log in";
+      $("message").textContent = "";
+    }
+
+    $("loginTab").onclick = () => setMode("login");
+    $("registerTab").onclick = () => setMode("register");
+
+    $("authForm").onsubmit = async (event) => {
+      event.preventDefault();
+      $("message").textContent = "";
+
+      const email = $("email").value.trim();
+      const password = $("password").value;
+      const registering = mode === "register";
+      const path = registering ? "/auth/register" : "/auth/login";
+      const body = registering
+        ? { name: $("name").value.trim(), email, password, age: Number($("age").value) }
+        : { email, password };
+
+      try {
+        const response = await fetch(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Request failed");
+        }
+
+        if (registering) {
+          setMode("login");
+          $("message").textContent = "Account created. You can log in now.";
+          return;
+        }
+
+        if (!result.token) throw new Error("No token returned by login");
+
+        sessionStorage.setItem("daylistToken", result.token);
+        window.location.href = "/todos.html";
+      } catch (error) {
+        $("message").textContent = error.message;
+      }
+    };
+  </script>
+</body>
+</html>

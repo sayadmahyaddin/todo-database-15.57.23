@@ -1,0 +1,648 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daylist — My Tasks</title>
+
+<style>
+:root {
+  --blue: #2463eb;
+  --navy: #101d3b;
+  --muted: #7886a5;
+  --border: #e5eaf4;
+  --bg: #f6f8fc;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--navy);
+}
+
+button, input { font: inherit; }
+button { cursor: pointer; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr) 390px;
+  gap: 16px;
+  padding: 18px;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 4px;
+}
+
+.logo {
+  font-size: 26px;
+  font-weight: 750;
+  margin-bottom: 35px;
+}
+
+.logo span { color: var(--blue); }
+
+.nav-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 15px;
+  border-radius: 12px;
+  color: #425171;
+  margin-bottom: 6px;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: #e4edff;
+  color: var(--blue);
+}
+
+.profile {
+  margin-top: auto;
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: 14px;
+  font-size: 14px;
+}
+
+/* MAIN */
+
+.main {
+  background: white;
+  border-radius: 18px;
+  padding: 26px;
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+h1 { font-size: 28px; margin-bottom: 5px; }
+
+.subtitle, .date {
+  color: var(--muted);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 28px 0;
+}
+
+.stat {
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 16px;
+}
+
+.stat strong {
+  display: block;
+  font-size: 25px;
+}
+
+.stat span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.add-task {
+  display: flex;
+  gap: 12px;
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.add-task input {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+}
+
+.primary {
+  border: none;
+  background: var(--blue);
+  color: white;
+  padding: 12px 23px;
+  border-radius: 9px;
+}
+
+.section-title { margin-top: 35px; }
+
+.task-list {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 20px 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.task:last-child { border-bottom: none; }
+
+.task input { width: 18px; height: 18px; }
+
+.task-name { flex: 1; }
+
+.task.done .task-name {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.delete-btn {
+  border: none;
+  background: transparent;
+  color: #e05252;
+  font-size: 19px;
+}
+
+/* CHATBOT */
+
+.chat-panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 36px);
+  min-height: 450px;
+  overflow: hidden;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bot-icon {
+  background: #e9f0ff;
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 25px;
+}
+
+.chat-header h3 { margin: 0; }
+
+.chat-header p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 5px 0 0;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.message {
+  padding: 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 90%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.message.bot {
+  background: #f0f3f9;
+  align-self: flex-start;
+}
+
+.message.user {
+  background: #dce7ff;
+  color: #1452cc;
+  align-self: flex-end;
+}
+
+.suggestions {
+  display: flex;
+  gap: 7px;
+  padding: 12px;
+  overflow-x: auto;
+}
+
+.suggestions button {
+  background: #eaf1ff;
+  border: none;
+  border-radius: 20px;
+  padding: 9px;
+  color: var(--blue);
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.chat-input {
+  display: flex;
+  gap: 8px;
+  padding: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.chat-input input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  outline: none;
+}
+
+.chat-input input:focus {
+  border-color: var(--blue);
+}
+
+.chat-input button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+/* RESPONSIVE */
+
+@media(max-width: 1150px) {
+  .layout { grid-template-columns: 180px minmax(0, 1fr); }
+  .chat-panel { grid-column: 2; height: 550px; }
+}
+
+@media(max-width: 650px) {
+  .layout { display: block; padding: 10px; }
+  .sidebar { display: none; }
+  .main { padding: 17px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .chat-panel { margin-top: 15px; height: 550px; }
+  h1 { font-size: 23px; }
+  .date { font-size: 12px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+
+  <aside class="sidebar">
+    <div class="logo"><span>✦</span> Daylist</div>
+
+    <button class="nav-item active">▣ My Tasks</button>
+    <button class="nav-item">▢ Today</button>
+    <button class="nav-item">▢ Upcoming</button>
+    <button class="nav-item">✓ Completed</button>
+
+    <hr style="width:100%;border:1px solid #edf0f5">
+
+    <button class="nav-item">⚙ Settings</button>
+    <button class="nav-item" id="logoutBtn">↪ Log out</button>
+
+    <div class="profile">
+      <strong>Sayad</strong>
+      <p style="color:#7886a5">Daylist Member</p>
+    </div>
+  </aside>
+
+  <!-- TODO AREA -->
+
+  <main class="main">
+
+    <div class="header">
+      <div>
+        <h1>Good morning, Sayad ☀️</h1>
+        <div class="subtitle">Let's make today productive!</div>
+      </div>
+
+      <span class="date" id="todayDate"></span>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <strong id="total">0</strong>
+        <span>Total Tasks</span>
+      </div>
+
+      <div class="stat">
+        <strong id="completed">0</strong>
+        <span>Completed</span>
+      </div>
+
+      <div class="stat">
+        <strong id="remaining">0</strong>
+        <span>Remaining</span>
+      </div>
+
+      <div class="stat">
+        <strong id="overdue">0</strong>
+        <span>Overdue</span>
+      </div>
+    </div>
+
+    <form class="add-task" id="taskForm">
+      <input
+        id="taskInput"
+        placeholder="Add a new task..."
+        required
+      >
+      <button class="primary" type="submit">Add</button>
+    </form>
+
+    <h2 class="section-title">My Tasks</h2>
+
+    <div class="task-list" id="taskList"></div>
+
+  </main>
+
+  <!-- CHATBOT -->
+
+  <section class="chat-panel">
+
+    <div class="chat-header">
+      <div class="bot-icon">🤖</div>
+      <div>
+        <h3>Daylist Assistant</h3>
+        <p>Your productivity AI companion</p>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+
+      <div class="message bot">Hi! 👋
+
+I'm your Daylist Assistant.
+
+I can help you:
+• Organise your tasks
+• Suggest a daily plan
+• Give productivity tips
+
+What would you like to do today?</div>
+
+    </div>
+
+    <div class="suggestions">
+      <button type="button" onclick="suggest('Help me organise my tasks')">
+        Organise tasks
+      </button>
+
+      <button type="button" onclick="suggest('Give me a daily plan')">
+        Daily plan
+      </button>
+
+      <button type="button" onclick="suggest('Give me productivity tips')">
+        Productivity tips
+      </button>
+    </div>
+
+    <form class="chat-input" id="chatForm">
+      <input
+        id="chatMessage"
+        placeholder="Ask something..."
+        autocomplete="off"
+        required
+      >
+
+      <button class="primary" id="sendBtn" type="submit">
+        ➤
+      </button>
+    </form>
+
+  </section>
+
+</div>
+
+<script>
+
+// ====================================
+// 1. DATE
+// ====================================
+
+document.getElementById("todayDate").textContent =
+  new Date().toLocaleDateString("en-US", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+
+
+// ====================================
+// 2. DEMO TODO FUNCTIONS
+// Replace with your MongoDB API later.
+// ====================================
+
+let tasks = [
+  { id: 1, title: "Finish JavaScript homework", done: false },
+  { id: 2, title: "Go to the gym", done: false },
+  { id: 3, title: "Read a book", done: true }
+];
+
+function renderTasks() {
+
+  const list = document.getElementById("taskList");
+  list.replaceChildren();
+
+  tasks.forEach(task => {
+
+    const row = document.createElement("div");
+    row.className = task.done ? "task done" : "task";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = task.done;
+
+    checkbox.addEventListener("change", () => {
+      task.done = checkbox.checked;
+      renderTasks();
+    });
+
+    const name = document.createElement("span");
+    name.className = "task-name";
+    name.textContent = task.title;
+
+    const remove = document.createElement("button");
+    remove.className = "delete-btn";
+    remove.textContent = "×";
+
+    remove.addEventListener("click", () => {
+      tasks = tasks.filter(t => t.id !== task.id);
+      renderTasks();
+    });
+
+    row.append(checkbox, name, remove);
+    list.appendChild(row);
+  });
+
+  const completed = tasks.filter(t => t.done).length;
+
+  document.getElementById("total").textContent = tasks.length;
+  document.getElementById("completed").textContent = completed;
+  document.getElementById("remaining").textContent =
+    tasks.length - completed;
+
+  // Demo tasks do not have due dates.
+  document.getElementById("overdue").textContent = "—";
+}
+
+document.getElementById("taskForm")
+  .addEventListener("submit", function(e) {
+
+    e.preventDefault();
+
+    const input = document.getElementById("taskInput");
+    const title = input.value.trim();
+
+    if (!title) return;
+
+    tasks.push({
+      id: Date.now(),
+      title,
+      done: false
+    });
+
+    input.value = "";
+    renderTasks();
+  });
+
+renderTasks();
+
+
+// ====================================
+// 3. CHATBOT FUNCTIONS
+// ====================================
+
+const chatForm = document.getElementById("chatForm");
+const chatInput = document.getElementById("chatMessage");
+const messages = document.getElementById("messages");
+const sendBtn = document.getElementById("sendBtn");
+
+function addMessage(text, sender) {
+
+  const bubble = document.createElement("div");
+
+  bubble.className = "message " + sender;
+  bubble.textContent = text;
+
+  messages.appendChild(bubble);
+
+  messages.scrollTop = messages.scrollHeight;
+
+  return bubble;
+}
+
+
+// Quick suggestion buttons
+
+function suggest(text) {
+  chatInput.value = text;
+  chatForm.requestSubmit();
+}
+
+
+// Send message to Express backend
+
+chatForm.addEventListener("submit", async (e) => {
+
+  e.preventDefault();
+
+  const message = chatInput.value.trim();
+
+  if (!message) return;
+
+  const token = sessionStorage.getItem("daylistToken");
+
+  if (!token) {
+    addMessage("Please log in first.", "bot");
+    return;
+  }
+
+  addMessage(message, "user");
+
+  chatInput.value = "";
+  sendBtn.disabled = true;
+
+  const loading = addMessage("Thinking...", "bot");
+
+  try {
+
+    const response = await fetch("/api/chatbot", {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+
+      body: JSON.stringify({ message })
+
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Request failed");
+    }
+
+    loading.textContent = data.reply || "No response received.";
+
+  } catch (error) {
+
+    loading.textContent = "Error: " + error.message;
+
+  } finally {
+
+    sendBtn.disabled = false;
+    chatInput.focus();
+
+  }
+
+});
+
+
+// ====================================
+// 4. LOGOUT
+// ====================================
+
+document.getElementById("logoutBtn")
+  .addEventListener("click", () => {
+
+    sessionStorage.removeItem("daylistToken");
+
+    window.location.href = "/login.html";
+
+  });
+
+</script>
+
+</body>
+</html>
