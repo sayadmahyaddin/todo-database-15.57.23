@@ -21,6 +21,11 @@ app.use("/auth", authRouter);
 app.use("/todo", auth, todoRouter);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/email", emailRouter)
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ message: "Server is healthy", date: new Date() });
+});
+
 connect();
 
 app.listen(3000, () => {
